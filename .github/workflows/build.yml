@@ -12,14 +12,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: latest-stable
-
-    - name: Build Dylib
+    - name: Compile Dylib
       run: |
-        make
+        echo "Setting up SDK..."
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        echo "Compiling hook.m..."
+        clang -dynamiclib -arch arm64 -isysroot $SDK_PATH -miphoneos-version-min=12.0 -fobjc-arc hook.m -o libBundleRedirector.dylib -framework Foundation
+        codesign -s - --entitlements entitlements.plist libBundleRedirector.dylib
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
