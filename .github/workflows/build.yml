@@ -7,18 +7,21 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Compile Dylib directly
+    - name: Setup Xcode Environment
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Compile Dylib
       run: |
-        echo "Checking files..."
-        ls -la
-        
+        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
         SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
-        echo "SDK Path found: $SDK_PATH"
+        echo "Using iOS SDK path: $SDK_PATH"
         
         clang -dynamiclib -arch arm64 -isysroot "$SDK_PATH" -miphoneos-version-min=12.0 -fobjc-arc hook.m -o libBundleRedirector.dylib -framework Foundation
         
