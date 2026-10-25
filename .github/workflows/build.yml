@@ -7,20 +7,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-13
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install Apple SDK Headers & Clang
+    - name: Compile Dylib
       run: |
-        sudo apt-get update
-        sudo apt-get install -y clang llvm libobjc-4-dev
-
-    - name: Compile Dylib (Linux cross-compile fallback)
-      run: |
-        clang -dynamiclib -arch arm64 -miphoneos-version-min=12.0 -fobjc-arc hook.m -o libBundleRedirector.dylib -framework Foundation || \
-        clang -shared -fPIC hook.m -o libBundleRedirector.dylib
+        echo "Starting compilation..."
+        clang -dynamiclib -arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -miphoneos-version-min=12.0 -fobjc-arc hook.m -o libBundleRedirector.dylib -framework Foundation
+        codesign -s - --entitlements entitlements.plist libBundleRedirector.dylib
+        echo "Build finished successfully!"
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
